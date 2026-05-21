@@ -2,5 +2,9 @@
   "$schema": "https://railway.app/railway.schema.json",
   "deploy": {
     "startCommand": "python app.py"
-  }
+  },
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "restartPolicyType": "ON_FAILURE"
 }
