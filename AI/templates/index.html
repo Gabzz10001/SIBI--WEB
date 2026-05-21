@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SIBI AI Realtime</title>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #38bdf8;
+        }
+
+        .box {
+            margin: 20px auto;
+            padding: 20px;
+            width: 60%;
+            background: #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .value {
+            font-size: 40px;
+            margin-top: 10px;
+            color: #facc15;
+        }
+
+        img {
+            width: 70%;
+            border-radius: 12px;
+            border: 3px solid #38bdf8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🤟 SIBI AI REALTIME</h1>
+
+    <!-- STREAM CAMERA -->
+    <div class="box">
+        <h2>Live Camera</h2>
+        <img src="/video" />
+    </div>
+
+    <!-- HURUF -->
+    <div class="box">
+        <h2>Huruf</h2>
+        <div class="value" id="huruf">-</div>
+    </div>
+
+    <!-- KATA -->
+    <div class="box">
+        <h2>Kata</h2>
+        <div class="value" id="kata">-</div>
+    </div>
+
+    <!-- TEKS -->
+    <div class="box">
+        <h2>Teks</h2>
+        <div class="value" id="teks">-</div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        socket.on("connect", () => {
+            console.log("Socket Connected");
+        });
+
+        socket.on("prediction", function(data) {
+            document.getElementById("huruf").innerText = data.huruf || "-";
+            document.getElementById("kata").innerText = data.kata || "-";
+            document.getElementById("teks").innerText = data.teks || "-";
+        });
+
+        // fallback kalau socket lambat (Railway kadang delay)
+        setInterval(async () => {
+            try {
+                const res = await fetch("/get_data");
+                const data = await res.json();
+
+                document.getElementById("huruf").innerText = data.huruf || "-";
+                document.getElementById("kata").innerText = data.kata || "-";
+                document.getElementById("teks").innerText = data.teks || "-";
+
+            } catch (e) {
+                console.log(e);
+            }
+        }, 1000);
+    </script>
+
+</body>
+</html>

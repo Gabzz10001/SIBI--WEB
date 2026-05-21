@@ -23,15 +23,15 @@ socketio = SocketIO(
 # ================= MODEL =================
 model = joblib.load("models/sibi_model.pkl")
 
-# ================= STORAGE (NO CHANGE LOGIC) =================
+# ================= STORAGE =================
 latest_data = {
     "huruf": "",
     "kata": "",
     "teks": ""
 }
 
-# ================= RAILWAY CONFIG (FIXED SAFE PLACEHOLDER) =================
-RAILWAY_URL = "https://NAMA-APP-ANDA.up.railway.app/update"
+# ================= RAILWAY URL =================
+RAILWAY_URL = "https://NAMA-APP-KAMU.up.railway.app/update"
 
 # ================= ESP32 =================
 ESP32_LED_IP = "192.168.137.68"
@@ -82,7 +82,7 @@ hands = mp_hands.Hands(
     min_tracking_confidence=0.75
 )
 
-# ================= VARIABLES (UNCHANGED) =================
+# ================= VARIABLES (UNCHANGED LOGIC) =================
 history = deque(maxlen=25)
 
 text_output = ""
@@ -96,13 +96,13 @@ delay_letter = 2.0
 last_led = -1
 last_btn_time = 0
 
-# ================= CLEAN FUNCTION (UNCHANGED) =================
+# ================= CLEAN FUNCTION =================
 def clean_letter(letter):
     if len(letter) == 0:
         return ""
     return letter[0].upper()
 
-# ================= RAILWAY PUSH (SAFE FIX ONLY - NO LOGIC CHANGE) =================
+# ================= RAILWAY PUSH =================
 def push_to_railway(huruf, kata, teks):
     global latest_data
 
@@ -121,7 +121,7 @@ def push_to_railway(huruf, kata, teks):
     except:
         pass
 
-# ================= FRAME GENERATOR (UNCHANGED LOGIC) =================
+# ================= FRAME GENERATOR =================
 def generate_frames():
 
     global cap
@@ -152,7 +152,7 @@ def generate_frames():
 
         current_pred = ""
 
-        # ================= HAND DETECTION (UNCHANGED) =================
+        # ================= HAND DETECTION =================
         if result.multi_hand_landmarks:
 
             if last_led != 1:
@@ -190,7 +190,7 @@ def generate_frames():
                 send_led(0)
                 last_led = 0
 
-        # ================= STABLE LETTER (UNCHANGED) =================
+        # ================= STABLE LETTER =================
         if current_pred:
 
             if current_pred != last_pred:
@@ -203,17 +203,17 @@ def generate_frames():
                 if duration > delay_letter:
                     if len(current_word) == 0 or current_word[-1] != current_pred:
                         current_word += current_pred
-                        print("✅ Huruf masuk:", current_pred)
+                        print("Huruf:", current_pred)
 
                     last_pred = ""
 
         else:
             if current_word != "":
                 text_output += current_word + " "
-                print("📝 Kata masuk:", current_word)
+                print("Kata:", current_word)
                 current_word = ""
 
-        # ================= BUTTON (UNCHANGED) =================
+        # ================= BUTTON =================
         if time.time() - last_btn_time > 0.4:
 
             btn = get_button()
@@ -227,14 +227,14 @@ def generate_frames():
                 elif len(text_output) > 0:
                     text_output = text_output[:-1]
 
-        # ================= SOCKETIO (UNCHANGED) =================
+        # ================= SOCKET =================
         socketio.emit("prediction", {
             "huruf": current_pred,
             "kata": current_word,
             "teks": text_output
         })
 
-        # ================= RAILWAY SYNC (SAFE ADD ONLY) =================
+        # ================= RAILWAY SYNC =================
         push_to_railway(current_pred, current_word, text_output)
 
         # ================= STREAM =================
@@ -262,7 +262,6 @@ def video():
         mimetype='multipart/x-mixed-replace; boundary=frame'
     )
 
-# ================= RAILWAY API =================
 @app.route("/update", methods=["POST"])
 def update():
     global latest_data
@@ -272,6 +271,10 @@ def update():
 @app.route("/get_data")
 def get_data():
     return jsonify(latest_data)
+
+# ================= RAILWAY ENTRY =================
+def create_app():
+    return app
 
 # ================= RUN =================
 if __name__ == "__main__":

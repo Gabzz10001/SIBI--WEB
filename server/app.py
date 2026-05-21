@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, jsonify
+from flask_socketio import SocketIO, emit
+import os
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'sibi-key-2024'
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # ================= STORAGE DATA =================
 latest_data = {
@@ -38,6 +42,17 @@ def update():
 def get_data():
     return jsonify(latest_data)
 
+# ================= SOCKET EVENTS =================
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    emit('response', {'data': 'Connected to server'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
 # ================= RUN =================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=False)
